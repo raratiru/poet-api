@@ -1,0 +1,45 @@
+[tool.poetry]
+name = "poet-api"
+version = "1.0.0"
+description = "Requests for all"
+authors = ["raratiru"]
+license = "BSD-3"
+readme = "README.md"
+packages = [{include = "api"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pyrate-limiter = "^2.8.3"
+aiohttp = "^3.8.3"
+filelock = "^3.8.2"
+
+
+[tool.poetry.group.dev.dependencies]
+django-devapp = "^0.2.0"
+mypy = "^0.991"
+bandit = "^1.7.4"
+flake8 = "^5.0.4"
+pytest = "^7.2.0"
+pytest-mock = "^3.10.0"
+pytest-cov = "*"
+pytest-factoryboy = "*"
+ipykernel = "*"
+pytest-xdist = "^2.5.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.coverage.run]
+omit = ["*/settings/*"]
+include = ["api/*"]
+
+[tool.pytest.ini_options]
+pythonpath = [
+  ".", "api"
+]
+console_output_style = "count"
+addopts = """
+  --cov --cov-branch --cov-report term-missing:skip-covered --log-cli-level=info
+  --pdb -s -vvv
+  """

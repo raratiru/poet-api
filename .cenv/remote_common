@@ -1,0 +1,5 @@
+#!/bin/bash
+# dotenv posix
+
+POET_PROJECT_PATH="/home/${POET_CLOUD_MANAGING_USER}/00_server/"
+POET_PROJECT_DJANGO_PATH="${POET_PROJECT_PATH}/src/${POET_PROJECT}"

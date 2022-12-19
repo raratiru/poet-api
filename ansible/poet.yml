@@ -1,0 +1,8 @@
+---
+- hosts: all
+  gather_facts: True
+  tasks:
+    - import_role:
+        name: poet
+    - import_role:
+        name: poet-cloud
