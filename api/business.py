@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import logging
+from datetime import datetime
 from typing import Optional, Union
+
 import requests  # type: ignore
 from pyrate_limiter import Duration, FileLockSQLiteBucket, Limiter, RequestRate
 
+logger = logging.getLogger(__name__)
 
 global_limiter = Limiter(
     RequestRate(1, Duration.SECOND),  # Helps keep flowing with minimal delays
@@ -22,6 +26,7 @@ def communicate(
 ) -> requests.Response:
 
     with limiter.ratelimit(caller_name, delay=True):
+        logger.debug(f"\n\n***Sending request now {datetime.now().isoformat()}***\n\n")
         response = session.send(
             request,
             **kwargs,
