@@ -3,6 +3,7 @@
 
 import logging
 from datetime import datetime
+from time import sleep
 from typing import Optional, Union
 from urllib.parse import urlparse
 
@@ -26,18 +27,36 @@ def communicate(
     **kwargs,
 ) -> requests.Response:
 
-    with limiter.ratelimit(caller_name, delay=True):
-        p_url = urlparse(request.url)
-        limiters = ", ".join([rate.__str__() for rate in limiter._rates])
-        logger.debug("\n\n***Request Information***")
-        logger.debug(f"* Sending request now {datetime.now().isoformat()}")
-        logger.debug(f"Url: {p_url.scheme}://{p_url.netloc}{p_url.path} (/?...)")
-        logger.debug(f"Limiters: {limiters}")
-        logger.debug("\n***/Request Information***\n\n")
-        response = session.send(
-            request,
-            **kwargs,
-        )
+    request_sent = False
+    retry_counter = 0
+
+    while not request_sent:
+        try:
+            with limiter.ratelimit(caller_name, delay=True):
+                p_url = urlparse(request.url)
+                limiters = ", ".join([rate.__str__() for rate in limiter._rates])
+                logger.debug("\n\n***Request Information***")
+                logger.debug(f"* Sending request now {datetime.now().isoformat()}")
+                logger.debug(
+                    f"Url: {p_url.scheme}://{p_url.netloc}{p_url.path} (/?...)"
+                )
+                logger.debug(f"Limiters: {limiters}")
+                logger.debug("\n***/Request Information***\n\n")
+                response = session.send(
+                    request,
+                    **kwargs,
+                )
+                request_sent = True
+        except requests.exceptions.ConnectTimeout:
+            """ Catches all exceptions that are safe to retry """
+            retry_counter = retry_counter + 1
+            logger.info(
+                f"ConnectionTimeout: Waiting {2 * (2 ** (retry_counter - 1))} "
+                "seconds to retry"
+                )
+            sleep(2 * (2 ** (retry_counter - 1)))
+            if retry_counter > 10:
+                raise requests.exceptions.ConnectTimeout("Tried 10 times and failed")
 
     return response
 

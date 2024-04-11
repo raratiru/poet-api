@@ -37,7 +37,7 @@ def test_comminicate_send(mocker):
         "POST",
         "https://www.google.com",
         headers={"User-Agent": "FOO", "BAR": "ABD"},
-        data={"A": 1, "B": 2}
+        data={"A": 1, "B": 2},
     )
     assert communicate.is_called()
     assert communicate.call_args[0][0].method == "POST"
@@ -46,3 +46,20 @@ def test_comminicate_send(mocker):
     assert communicate.call_args[1]["timeout"] == 8
     assert communicate.call_args[1]["stream"] is True
     assert communicate.call_args[1]["allow_redirects"] is False
+
+
+@pytest.mark.only
+def test_timeout(mocker):
+    communicate = mocker.patch("api.business.requests.Session.send")
+    communicate.side_effect = requests.exceptions.ConnectTimeout("Oh Shit")
+    sleep = mocker.patch("api.business.sleep", return_value=None)
+    # sleep.side_effect = time.sleep(0)
+    with pytest.raises(requests.exceptions.ConnectionError):
+        s = requests.Session()
+        Communicate(s, "test", stream=True, allow_redirects=False, timeout=8).send(
+            "POST",
+            "https://www.google.com",
+            headers={"User-Agent": "FOO", "BAR": "ABD"},
+            data={"A": 1, "B": 2},
+        )
+    assert sleep.call_count == 11
