@@ -54,7 +54,7 @@ def test_timeout(mocker):
     communicate.side_effect = requests.exceptions.ConnectTimeout("Oh Shit")
     sleep = mocker.patch("api.business.sleep", return_value=None)
     # sleep.side_effect = time.sleep(0)
-    with pytest.raises(requests.exceptions.ConnectionError):
+    with pytest.raises(requests.exceptions.ConnectTimeout):
         s = requests.Session()
         Communicate(s, "test", stream=True, allow_redirects=False, timeout=8).send(
             "POST",

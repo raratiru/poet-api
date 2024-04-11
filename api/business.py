@@ -47,7 +47,7 @@ def communicate(
                     **kwargs,
                 )
                 request_sent = True
-        except requests.exceptions.ConnectTimeout:
+        except (requests.exceptions.ConnectTimeout, requests.exceptions.ReadTimeout):
             """ Catches all exceptions that are safe to retry """
             retry_counter = retry_counter + 1
             logger.info(
