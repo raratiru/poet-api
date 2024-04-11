@@ -4,6 +4,7 @@
 import logging
 from datetime import datetime
 from typing import Optional, Union
+from urllib.parse import urlparse
 
 import requests  # type: ignore
 from pyrate_limiter import Duration, FileLockSQLiteBucket, Limiter, RequestRate
@@ -26,7 +27,13 @@ def communicate(
 ) -> requests.Response:
 
     with limiter.ratelimit(caller_name, delay=True):
-        logger.debug(f"\n\n***Sending request now {datetime.now().isoformat()}***\n\n")
+        p_url = urlparse(request.url)
+        limiters = ", ".join([rate.__str__() for rate in limiter._rates])
+        logger.debug("\n\n***Request Information***")
+        logger.debug(f"* Sending request now {datetime.now().isoformat()}")
+        logger.debug(f"Url: {p_url.scheme}://{p_url.netloc}{p_url.path} (/?...)")
+        logger.debug(f"Limiters: {limiters}")
+        logger.debug("\n***/Request Information***\n\n")
         response = session.send(
             request,
             **kwargs,
