@@ -16,7 +16,7 @@ filelock = "^3.12.3"
 
 [tool.poetry.group.dev.dependencies]
 django-devapp = "^0.2.0"
-mypy = "^1.5"
+mypy = "^1.15"
 bandit = "^1.7.4"
 flake8 = "^7.0.0"
 pytest = "^8.2.2"
