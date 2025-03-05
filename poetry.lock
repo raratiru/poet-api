@@ -543,7 +543,7 @@ description = "Cross-platform colored terminal text."
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,>=2.7"
 groups = ["dev"]
-markers = "platform_system == \"Windows\" or os_name == \"nt\" or sys_platform == \"win32\""
+markers = "platform_system == \"Windows\" or sys_platform == \"win32\" or os_name == \"nt\""
 files = [
     {file = "colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6"},
     {file = "colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44"},
@@ -776,23 +776,23 @@ bcrypt = ["bcrypt"]
 
 [[package]]
 name = "django-devapp"
-version = "0.2.0"
-description = "Basic tools to manage a django application outside of a Django project."
+version = "0.3.1"
+description = "Basic tools to manage a django application outside of a Django project"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.10"
 groups = ["dev"]
 files = [
-    {file = "django-devapp-0.2.0.tar.gz", hash = "sha256:96961c78901b8420bbc29af450a65c98e754158d464d38d5ba53559b39a73b41"},
-    {file = "django_devapp-0.2.0-py3-none-any.whl", hash = "sha256:f17859524426bf95770cec5e72ae8d9e2566c0bb39e36183544f20436fe07b14"},
+    {file = "django_devapp-0.3.1-py3-none-any.whl", hash = "sha256:bc57e62a36c5b1f63063edc17e5128c52357c6ff505da7ba7bf81d2288cc074f"},
+    {file = "django_devapp-0.3.1.tar.gz", hash = "sha256:7f618756627e6a10e2849710fd0325140f30817ed35bb51d34afc8eba8613412"},
 ]
 
 [package.dependencies]
-black = "*"
-build = "*"
-click = "*"
-django = "*"
-ipython = "*"
-twine = "*"
+black = ">=25.1.0,<26.0.0"
+build = ">=1.2.2.post1,<2.0.0"
+click = ">=8.1.8,<9.0.0"
+django = ">=5.1.6,<6.0.0"
+ipython = ">=8.32.0,<9.0.0"
+twine = ">=6.1.0,<7.0.0"
 
 [[package]]
 name = "docutils"
@@ -2825,4 +2825,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "c9936d96c7bd59147c7062579bb3edc1c9e69aa76bcd91a544a41a1cc4a45dc8"
+content-hash = "67b7403dc2a9d93848830f8106797d11e4c90bbaa4278e998e2d313f33aa08fc"
