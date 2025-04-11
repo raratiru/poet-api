@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "poet-api"
-version = "1.2.15"
+version = "1.2.16"
 description = "Requests for all"
 authors = ["raratiru"]
 license = "BSD-3-Clause"
@@ -17,7 +17,7 @@ filelock = "^3.12.3"
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.5"
 bandit = "^1.7.4"
-flake8 = "^7.0.0"
+flake8 = "^7.2.0"
 pytest = "^8.2.2"
 pytest-mock = "^3.10.0"
 pytest-cov = "*"
