@@ -16,17 +16,20 @@ from typing import Optional, Union
 
 import requests  # type: ignore
 from pyrate_limiter import Duration, Limiter, Rate, SQLiteBucket
+from tempfile import gettempdir
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
+
+temp_dir = Path(gettempdir())
+db_path = str(temp_dir / "pyrate_limiter.sqlite")
 
 per_second_rate = Rate(1, Duration.SECOND)
 per_minute_rate = Rate(56, Duration.MINUTE)
 
 rates = [per_second_rate, per_minute_rate]
 
-bucket = SQLiteBucket.init_from_file(
-    rates, use_file_lock=True, db_path="pyrate_limiter.sqlite"
-)
+bucket = SQLiteBucket.init_from_file(rates, use_file_lock=True, db_path=db_path)
 
 global_limiter = Limiter(bucket, raise_when_fail=False, max_delay=4000)
 global_limiter.retry_until_max_delay = True
