@@ -10,15 +10,32 @@ from pyrate_limiter import Duration, Limiter, Rate, SQLiteBucket
 
 logger = logging.getLogger(__name__)
 
+import logging
+from time import sleep
+from typing import Optional, Union
+
+import requests  # type: ignore
+from pyrate_limiter import Duration, Limiter, Rate, SQLiteBucket
+
+logger = logging.getLogger(__name__)
+
 per_second_rate = Rate(1, Duration.SECOND)
 per_minute_rate = Rate(56, Duration.MINUTE)
 
 rates = [per_second_rate, per_minute_rate]
 
-bucket = SQLiteBucket.init_from_file(rates, use_file_lock=False)
+bucket = SQLiteBucket.init_from_file(
+    rates, use_file_lock=True, db_path="pyrate_limiter.sqlite"
+)
 
 global_limiter = Limiter(bucket, raise_when_fail=False, max_delay=4000)
 global_limiter.retry_until_max_delay = True
+
+# counter = 1
+# for _ in range(70):
+#     global_limiter.try_acquire("item")
+#     print(counter)
+#     counter += 1
 
 
 def communicate(
