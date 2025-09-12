@@ -9,7 +9,7 @@ packages = [{include = "api"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-pyrate-limiter = "^2"
+pyrate-limiter = "^3"
 aiohttp = "^3.11.13"
 filelock = "^3.12.3"
 

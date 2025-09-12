@@ -2,21 +2,23 @@
 # -*- coding: utf-8 -*-
 
 import logging
-from datetime import datetime
 from time import sleep
 from typing import Optional, Union
-from urllib.parse import urlparse
 
 import requests  # type: ignore
-from pyrate_limiter import Duration, FileLockSQLiteBucket, Limiter, RequestRate
+from pyrate_limiter import Duration, Limiter, Rate, SQLiteBucket
 
 logger = logging.getLogger(__name__)
 
-global_limiter = Limiter(
-    RequestRate(1, Duration.SECOND),  # Helps keep flowing with minimal delays
-    RequestRate(56, Duration.MINUTE),  # Main limiter with safety zone
-    bucket_class=FileLockSQLiteBucket,
-)
+per_second_rate = Rate(1, Duration.SECOND)
+per_minute_rate = Rate(56, Duration.MINUTE)
+
+rates = [per_second_rate, per_minute_rate]
+
+bucket = SQLiteBucket.init_from_file(rates, use_file_lock=False)
+
+global_limiter = Limiter(bucket, raise_when_fail=False, max_delay=4000)
+global_limiter.retry_until_max_delay = True
 
 
 def communicate(
@@ -32,28 +34,19 @@ def communicate(
 
     while not request_sent:
         try:
-            with limiter.ratelimit(caller_name, delay=True):
-                p_url = urlparse(request.url)
-                limiters = ", ".join([rate.__str__() for rate in limiter._rates])
-                logger.debug("\n\n***Request Information***")
-                logger.debug(f"* Sending request now {datetime.now().isoformat()}")
-                logger.debug(
-                    f"Url: {p_url.scheme}://{p_url.netloc}{p_url.path} (/?...)"
-                )
-                logger.debug(f"Limiters: {limiters}")
-                logger.debug("\n***/Request Information***\n\n")
-                response = session.send(
-                    request,
-                    **kwargs,
-                )
-                request_sent = True
+            limiter.try_acquire(caller_name)
+            response = session.send(
+                request,
+                **kwargs,
+            )
+            request_sent = True
         except (requests.exceptions.ConnectTimeout, requests.exceptions.ReadTimeout):
-            """ Catches all exceptions that are safe to retry """
+            """Catches all exceptions that are safe to retry"""
             retry_counter = retry_counter + 1
             logger.info(
                 f"ConnectionTimeout: Waiting {2 * (2 ** (retry_counter - 1))} "
                 "seconds to retry"
-                )
+            )
             sleep(2 * (2 ** (retry_counter - 1)))
             if retry_counter > 10:
                 raise requests.exceptions.ConnectTimeout("Tried 10 times and failed")
