@@ -2,43 +2,80 @@
 # -*- coding: utf-8 -*-
 
 import logging
-from time import sleep
-from typing import Optional, Union
-
-import requests  # type: ignore
-from pyrate_limiter import Duration, Limiter, Rate, SQLiteBucket
-
-logger = logging.getLogger(__name__)
-
-import logging
-from time import sleep
-from typing import Optional, Union
-
-import requests  # type: ignore
-from pyrate_limiter import Duration, Limiter, Rate, SQLiteBucket
-from tempfile import gettempdir
 from pathlib import Path
+from tempfile import gettempdir
+from time import sleep
+from typing import Optional, Union
+
+import requests  # type: ignore
+from pyrate_limiter import (
+    AbstractBucket,
+    BucketAsyncWrapper,
+    Duration,
+    Limiter,
+    Rate,
+    SQLiteBucket,
+)
 
 logger = logging.getLogger(__name__)
 
-temp_dir = Path(gettempdir())
-db_path = str(temp_dir / "pyrate_limiter.sqlite")
 
-per_second_rate = Rate(1, Duration.SECOND)
-per_minute_rate = Rate(56, Duration.MINUTE)
+def create_sqlite_limiter(
+    per_second: int = 1,
+    per_minute: int = 56,
+    per_day: Optional[int] = None,
+    table_name: str = "rate_bucket",
+    max_delay: Union[int, Duration] = Duration.DAY,
+    buffer_ms: int = 50,
+    use_file_lock: bool = True,
+    async_wrapper: bool = False,
+) -> Limiter:
+    """
+    Create a SQLite-backed rate limiter with configurable rate, persistence, and optional async support.
 
-rates = [per_second_rate, per_minute_rate]
+    Args:
+        rate_per_duration: Number of allowed requests per duration.
+        duration: Time window for the rate limit.
+        db_path: Path to the SQLite database file (or in-memory if None).
+        table_name: Name of the table used for rate buckets.
+        max_delay: Maximum delay before failing requests.
+        buffer_ms: Extra wait time in milliseconds to account for clock drift.
+        use_file_lock: Enable file locking for multi-process synchronization.
+        async_wrapper: Whether to wrap the bucket for async usage.
 
-bucket = SQLiteBucket.init_from_file(rates, use_file_lock=True, db_path=db_path)
+    Returns:
+        Limiter: Configured SQLite-backed limiter instance.
+    """
+    per_second_rate = Rate(per_second, Duration.SECOND)
+    per_minute_rate = Rate(per_minute, Duration.MINUTE)
+    rate_limits = [per_second_rate, per_minute_rate]
+    if per_day:
+        per_day_rate = Rate(per_day, Duration.DAY)
+        rate_limits.append(per_day_rate)
 
-global_limiter = Limiter(bucket, raise_when_fail=False, max_delay=4000)
-global_limiter.retry_until_max_delay = True
+    temp_dir = Path(gettempdir())
+    db_path = str(temp_dir / "pyrate_limiter.sqlite")
 
-# counter = 1
-# for _ in range(70):
-#     global_limiter.try_acquire("item")
-#     print(counter)
-#     counter += 1
+    bucket: AbstractBucket = SQLiteBucket.init_from_file(
+        rate_limits,
+        db_path=str(db_path),
+        table=table_name,
+        create_new_table=True,
+        use_file_lock=use_file_lock,
+    )
+
+    if async_wrapper:
+        bucket = BucketAsyncWrapper(bucket)
+
+    limiter = Limiter(
+        bucket,
+        raise_when_fail=False,
+        max_delay=max_delay,
+        retry_until_max_delay=True,
+        buffer_ms=buffer_ms,
+    )
+
+    return limiter
 
 
 def communicate(
@@ -127,11 +164,12 @@ class Communicate:
                 **kwargs,
             )
         )
+
         return communicate(
             self.session,
             request,
             caller_name=self.caller_name,
-            limiter=self.limiter or global_limiter,
+            limiter=self.limiter or create_sqlite_limiter(),
             stream=self.stream,
             timeout=self.timeout,
             allow_redirects=self.allow_redirects,
