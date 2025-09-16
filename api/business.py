@@ -35,9 +35,6 @@ def create_sqlite_limiter(
     async support.
 
     Args:
-        rate_per_duration: Number of allowed requests per duration.
-        duration: Time window for the rate limit.
-        db_path: Path to the SQLite database file (or in-memory if None).
         table_name: Name of the table used for rate buckets.
         max_delay: Maximum delay before failing requests.
         buffer_ms: Extra wait time in milliseconds to account for clock drift.

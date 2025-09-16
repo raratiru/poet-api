@@ -2,9 +2,9 @@
 
 Requests with Limiter.
 
-Uses [`create_sqlite_limiter`](https://github.com/vutran1710/PyrateLimiter/blob/8cb467ea54c68368eaf34deef1a6cc38c41218a2/pyrate_limiter/limiter_factory.py#L55) from [pyrate-limiter](https://github.com/vutran1710/PyrateLimiter/tree/v3.9.0) with `use_file_lock=True`.
+Uses `pyrate_limiter.SQLiteBucket` with `use_file_lock=True`.
 
-It can handdle many connections concurrently and respect the chosen limits `per_second`, `per_minute`, `per_day`.
+It can handle many connections concurrently and respect the chosen limits `per_second`, `per_minute`, `per_day`.
 
 ## class Communicate
 
