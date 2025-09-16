@@ -31,7 +31,8 @@ def create_sqlite_limiter(
     async_wrapper: bool = False,
 ) -> Limiter:
     """
-    Create a SQLite-backed rate limiter with configurable rate, persistence, and optional async support.
+    Create a SQLite-backed rate limiter with configurable rate, persistence, and optional
+    async support.
 
     Args:
         rate_per_duration: Number of allowed requests per duration.
@@ -129,7 +130,9 @@ class Communicate:
         self,
         session: requests.Session,
         caller_name: str,
-        limiter: Optional[Limiter] = None,
+        per_second: int = 1,
+        per_minute: int = 56,
+        per_day: Optional[int] = None,
         stream: bool = False,
         timeout: Union[float, tuple] = 5,
         allow_redirects: bool = True,
@@ -139,7 +142,9 @@ class Communicate:
         self.timeout = timeout
         self.allow_redirects = allow_redirects
         self.caller_name = caller_name
-        self.limiter = limiter
+        self.per_second = per_second
+        self.per_minute = per_minute
+        self.per_day = per_day
 
     def _validate_session(self, session) -> requests.Session:
         if not issubclass(session.__class__, requests.Session):
@@ -169,7 +174,11 @@ class Communicate:
             self.session,
             request,
             caller_name=self.caller_name,
-            limiter=self.limiter or create_sqlite_limiter(),
+            limiter=create_sqlite_limiter(
+                per_second=self.per_second,
+                per_minute=self.per_minute,
+                per_day=self.per_day,
+            ),
             stream=self.stream,
             timeout=self.timeout,
             allow_redirects=self.allow_redirects,
