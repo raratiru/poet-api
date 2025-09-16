@@ -48,7 +48,6 @@ def test_comminicate_send(mocker):
     assert communicate.call_args[1]["allow_redirects"] is False
 
 
-@pytest.mark.only
 def test_timeout(mocker):
     communicate = mocker.patch("api.business.requests.Session.send")
     communicate.side_effect = requests.exceptions.ConnectTimeout("Oh Shit")

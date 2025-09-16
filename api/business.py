@@ -2,21 +2,78 @@
 # -*- coding: utf-8 -*-
 
 import logging
-from datetime import datetime
+from pathlib import Path
+from tempfile import gettempdir
 from time import sleep
 from typing import Optional, Union
-from urllib.parse import urlparse
 
 import requests  # type: ignore
-from pyrate_limiter import Duration, FileLockSQLiteBucket, Limiter, RequestRate
+from pyrate_limiter import (
+    AbstractBucket,
+    BucketAsyncWrapper,
+    Duration,
+    Limiter,
+    Rate,
+    SQLiteBucket,
+)
 
 logger = logging.getLogger(__name__)
 
-global_limiter = Limiter(
-    RequestRate(1, Duration.SECOND),  # Helps keep flowing with minimal delays
-    RequestRate(56, Duration.MINUTE),  # Main limiter with safety zone
-    bucket_class=FileLockSQLiteBucket,
-)
+
+def create_sqlite_limiter(
+    per_second: int = 1,
+    per_minute: int = 56,
+    per_day: Optional[int] = None,
+    table_name: str = "rate_bucket",
+    max_delay: Union[int, Duration] = Duration.DAY,
+    buffer_ms: int = 50,
+    use_file_lock: bool = True,
+    async_wrapper: bool = False,
+) -> Limiter:
+    """
+    Create a SQLite-backed rate limiter with configurable rate, persistence, and optional
+    async support.
+
+    Args:
+        table_name: Name of the table used for rate buckets.
+        max_delay: Maximum delay before failing requests.
+        buffer_ms: Extra wait time in milliseconds to account for clock drift.
+        use_file_lock: Enable file locking for multi-process synchronization.
+        async_wrapper: Whether to wrap the bucket for async usage.
+
+    Returns:
+        Limiter: Configured SQLite-backed limiter instance.
+    """
+    per_second_rate = Rate(per_second, Duration.SECOND)
+    per_minute_rate = Rate(per_minute, Duration.MINUTE)
+    rate_limits = [per_second_rate, per_minute_rate]
+    if per_day:
+        per_day_rate = Rate(per_day, Duration.DAY)
+        rate_limits.append(per_day_rate)
+
+    temp_dir = Path(gettempdir())
+    db_path = str(temp_dir / "pyrate_limiter.sqlite")
+
+    bucket: AbstractBucket = SQLiteBucket.init_from_file(
+        rate_limits,
+        db_path=str(db_path),
+        table=table_name,
+        create_new_table=True,
+        use_file_lock=use_file_lock,
+    )
+
+    if async_wrapper:
+        bucket = BucketAsyncWrapper(bucket)
+
+    limiter = Limiter(
+        bucket,
+        raise_when_fail=False,
+        max_delay=max_delay,
+        retry_until_max_delay=True,
+        buffer_ms=buffer_ms,
+    )
+
+    return limiter
 
 
 def communicate(
@@ -32,28 +89,19 @@ def communicate(
 
     while not request_sent:
         try:
-            with limiter.ratelimit(caller_name, delay=True):
-                p_url = urlparse(request.url)
-                limiters = ", ".join([rate.__str__() for rate in limiter._rates])
-                logger.debug("\n\n***Request Information***")
-                logger.debug(f"* Sending request now {datetime.now().isoformat()}")
-                logger.debug(
-                    f"Url: {p_url.scheme}://{p_url.netloc}{p_url.path} (/?...)"
-                )
-                logger.debug(f"Limiters: {limiters}")
-                logger.debug("\n***/Request Information***\n\n")
-                response = session.send(
-                    request,
-                    **kwargs,
-                )
-                request_sent = True
+            limiter.try_acquire(caller_name)
+            response = session.send(
+                request,
+                **kwargs,
+            )
+            request_sent = True
         except (requests.exceptions.ConnectTimeout, requests.exceptions.ReadTimeout):
-            """ Catches all exceptions that are safe to retry """
+            """Catches all exceptions that are safe to retry"""
             retry_counter = retry_counter + 1
             logger.info(
                 f"ConnectionTimeout: Waiting {2 * (2 ** (retry_counter - 1))} "
                 "seconds to retry"
-                )
+            )
             sleep(2 * (2 ** (retry_counter - 1)))
             if retry_counter > 10:
                 raise requests.exceptions.ConnectTimeout("Tried 10 times and failed")
@@ -79,7 +127,9 @@ class Communicate:
         self,
         session: requests.Session,
         caller_name: str,
-        limiter: Optional[Limiter] = None,
+        per_second: int = 1,
+        per_minute: int = 56,
+        per_day: Optional[int] = None,
         stream: bool = False,
         timeout: Union[float, tuple] = 5,
         allow_redirects: bool = True,
@@ -89,7 +139,9 @@ class Communicate:
         self.timeout = timeout
         self.allow_redirects = allow_redirects
         self.caller_name = caller_name
-        self.limiter = limiter
+        self.per_second = per_second
+        self.per_minute = per_minute
+        self.per_day = per_day
 
     def _validate_session(self, session) -> requests.Session:
         if not issubclass(session.__class__, requests.Session):
@@ -114,11 +166,16 @@ class Communicate:
                 **kwargs,
             )
         )
+
         return communicate(
             self.session,
             request,
             caller_name=self.caller_name,
-            limiter=self.limiter or global_limiter,
+            limiter=create_sqlite_limiter(
+                per_second=self.per_second,
+                per_minute=self.per_minute,
+                per_day=self.per_day,
+            ),
             stream=self.stream,
             timeout=self.timeout,
             allow_redirects=self.allow_redirects,
