@@ -87,6 +87,8 @@ def communicate(
     request_sent = False
     retry_counter = 0
 
+    response = None
+
     while not request_sent:
         try:
             limiter.try_acquire(caller_name)
@@ -106,6 +108,9 @@ def communicate(
             if retry_counter > 10:
                 raise requests.exceptions.ConnectTimeout("Tried 10 times and failed")
 
+    if response is None:
+        raise requests.exceptions.RequestException("Failed request for unknown reason")
+
     return response
 
 
@@ -114,7 +119,7 @@ class Communicate:
     * Prepares a requests.Request.
     * Gets initialized with a requests.Session
     * Applies headers
-    * Optionally accepts a limiter, otherwise the default limiter applies
+    * Optionally accepts limits, otherwise the default limits apply
     """
 
     default_headers = {
