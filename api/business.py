@@ -130,7 +130,6 @@ class Communicate:
 
     def __init__(
         self,
-        session: requests.Session,
         caller_name: str,
         per_second: int = 1,
         per_minute: int = 56,
@@ -139,7 +138,6 @@ class Communicate:
         timeout: Union[float, tuple] = 5,
         allow_redirects: bool = True,
     ) -> None:
-        self.session = self._validate_session(session)
         self.stream = stream
         self.timeout = timeout
         self.allow_redirects = allow_redirects
@@ -157,31 +155,58 @@ class Communicate:
         self,
         method: str,
         url: str,
+        session: requests.Session | None = None,
         headers: Optional[dict] = None,
         **kwargs,
     ) -> requests.Response:
         """
         Prepares a requests.Request object
         """
-        request = self.session.prepare_request(
-            requests.Request(
-                method=method,
-                url=url,
-                headers=headers or self.default_headers,
-                **kwargs,
+        if session:
+            self._validate_session(session)
+            request = session.prepare_request(
+                requests.Request(
+                    method=method,
+                    url=url,
+                    headers=headers or self.default_headers,
+                    **kwargs,
+                )
             )
-        )
 
-        return communicate(
-            self.session,
-            request,
-            caller_name=self.caller_name,
-            limiter=create_sqlite_limiter(
-                per_second=self.per_second,
-                per_minute=self.per_minute,
-                per_day=self.per_day,
-            ),
-            stream=self.stream,
-            timeout=self.timeout,
-            allow_redirects=self.allow_redirects,
-        )
+            return communicate(
+                session,
+                request,
+                caller_name=self.caller_name,
+                limiter=create_sqlite_limiter(
+                    per_second=self.per_second,
+                    per_minute=self.per_minute,
+                    per_day=self.per_day,
+                ),
+                stream=self.stream,
+                timeout=self.timeout,
+                allow_redirects=self.allow_redirects,
+            )
+        else:
+            with requests.Session() as session:
+                request = session.prepare_request(
+                    requests.Request(
+                        method=method,
+                        url=url,
+                        headers=headers or self.default_headers,
+                        **kwargs,
+                    )
+                )
+
+                return communicate(
+                    session,
+                    request,
+                    caller_name=self.caller_name,
+                    limiter=create_sqlite_limiter(
+                        per_second=self.per_second,
+                        per_minute=self.per_minute,
+                        per_day=self.per_day,
+                    ),
+                    stream=self.stream,
+                    timeout=self.timeout,
+                    allow_redirects=self.allow_redirects,
+                )
