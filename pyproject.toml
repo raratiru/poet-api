@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "poet-api"
-version = "3.0.0"
+version = "3.0.2"
 description = "Requests for all"
 authors = ["raratiru"]
 license = "BSD-3-Clause"
