@@ -142,9 +142,11 @@ class Communicate:
         self.timeout = timeout
         self.allow_redirects = allow_redirects
         self.caller_name = caller_name
-        self.per_second = per_second
-        self.per_minute = per_minute
-        self.per_day = per_day
+        self.limiter = create_sqlite_limiter(
+            per_second=per_second,
+            per_minute=per_minute,
+            per_day=per_day,
+        )
 
     def _validate_session(self, session) -> requests.Session:
         if not issubclass(session.__class__, requests.Session):
@@ -177,11 +179,7 @@ class Communicate:
                 session,
                 request,
                 caller_name=self.caller_name,
-                limiter=create_sqlite_limiter(
-                    per_second=self.per_second,
-                    per_minute=self.per_minute,
-                    per_day=self.per_day,
-                ),
+                limiter=self.limiter,
                 stream=self.stream,
                 timeout=self.timeout,
                 allow_redirects=self.allow_redirects,
@@ -201,11 +199,7 @@ class Communicate:
                     session,
                     request,
                     caller_name=self.caller_name,
-                    limiter=create_sqlite_limiter(
-                        per_second=self.per_second,
-                        per_minute=self.per_minute,
-                        per_day=self.per_day,
-                    ),
+                    limiter=self.limiter,
                     stream=self.stream,
                     timeout=self.timeout,
                     allow_redirects=self.allow_redirects,
