@@ -31,10 +31,15 @@ It can handle many connections concurrently and respect the chosen limits `per_s
 - Simplest (by default: 56 requests per minute, 1 request per second):
 
   ```
+  import requests
+
   from api import Communicate
   from requests import Session
 
-  response = Communicate(caller_name="simple_john").send(
+  limiter = Communicate(caller_name="simple_john")
+  ...
+
+  response: requests.Response = limiter.send(
       method="GET", url="https://john-site.com"
   )
   ```
@@ -45,14 +50,17 @@ It can handle many connections concurrently and respect the chosen limits `per_s
   from api import Communicate
   from requests import Session
 
-  headers = {"User-Agent": ("My Dear Agent v.1")}
-
-  with Session() as session:
-      response = Communicate(
+  limiter = Communicate(
           caller_name="John",
           per_second=1,
           per_minute=6
-      ).send(
+      )
+  headers = {"User-Agent": ("My Dear Agent v.1")}
+
+  ...
+
+  with Session() as session:
+      response: requests.Response = limiter.send(
           method="GET",
           url="https://mysite.com",
           session=session,
