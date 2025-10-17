@@ -58,7 +58,7 @@ def create_sqlite_limiter(
         rate_limits,
         db_path=str(db_path),
         table=table_name,
-        create_new_table=False,
+        create_new_table=True,
         use_file_lock=use_file_lock,
     )
 
