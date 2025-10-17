@@ -37,7 +37,6 @@ It can handle many connections concurrently and respect the chosen limits `per_s
   from requests import Session
 
   limiter = Communicate(caller_name="simple_john")
-  ...
 
   response: requests.Response = limiter.send(
       method="GET", url="https://john-site.com"
@@ -56,8 +55,6 @@ It can handle many connections concurrently and respect the chosen limits `per_s
           per_minute=6
       )
   headers = {"User-Agent": ("My Dear Agent v.1")}
-
-  ...
 
   with Session() as session:
       response: requests.Response = limiter.send(
