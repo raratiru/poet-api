@@ -30,7 +30,7 @@ It can handle many connections concurrently and respect the chosen limits `per_s
 
 - Simplest (by default: 56 requests per minute, 1 request per second):
 
-  ```
+  ```python
   import requests
 
   from api import Communicate
@@ -45,7 +45,7 @@ It can handle many connections concurrently and respect the chosen limits `per_s
 
 - With custom limits, session and custom headers:
 
-  ```
+  ```python
   from api import Communicate
   from requests import Session
 
