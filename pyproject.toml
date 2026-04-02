@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "poet-api"
-version = "3.0.9"
+version = "3.0.10"
 description = "Requests for all"
 authors = ["raratiru"]
 license = "BSD-3-Clause"
@@ -12,6 +12,7 @@ python = "^3.11"
 pyrate-limiter = "^3"
 aiohttp = "^3.11.13"
 filelock = "^3.12.3"
+django-devapp = "0.4.3"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -24,7 +25,6 @@ pytest-cov = "*"
 pytest-factoryboy = "*"
 ipykernel = "*"
 pytest-xdist = "^3.3.1"
-django-devapp = "^0.4.0"
 
 [build-system]
 requires = ["poetry-core"]
