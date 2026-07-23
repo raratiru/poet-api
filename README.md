@@ -4,7 +4,7 @@ Requests with Limiter.
 
 Uses `pyrate_limiter.SQLiteBucket` with `use_file_lock=True`.
 
-It has a default `RATE_LIMIT_SITES` setting and waits for settings.DJANGO_RATE_LIMIT_SITES:
+It has a default `RATE_LIMIT_SITES` setting and waits for `settings.DJANGO_RATE_LIMIT_SITES`:
 
 ```python
 RATE_LIMIT_SITES = {
