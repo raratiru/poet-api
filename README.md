@@ -27,8 +27,8 @@ RATE_LIMIT_SITES = {
 * `rates: list` -> `Rate` objects for the domain
 * `max_wait_seconds: int` -> Max seconds the limiter can wait for the domain
 * `abort_trying: bool` -> 
-     `False` -> If "rates" demands more time than "max_wait_seconds", the request is fired asap
-     `True` -> If "rates" demands more time than "max_wait_seconds", a mocked 429 Response is returned with a custom object.
+     * `False` -> If "rates" demands more time than "max_wait_seconds", the request is fired asap
+     * `True` -> If "rates" demands more time than "max_wait_seconds", a mocked 429 Response is returned with a custom object.
 
 ## Example
 
