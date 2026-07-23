@@ -4,63 +4,60 @@ Requests with Limiter.
 
 Uses `pyrate_limiter.SQLiteBucket` with `use_file_lock=True`.
 
-It can handle many connections concurrently and respect the chosen limits `per_second`, `per_minute`, `per_day`.
+It has a default `RATE_LIMIT_SITES` setting and waits for settings.RATE_LIMIT_SITES:
 
-## class Communicate
+```python
+RATE_LIMIT_SITES = {
+    # "payment_gateway": {
+    #     "domain_keyword": "adomain.com",
+    #     "rates": [Rate(25, Duration.MINUTE)],
+    #     "max_wait_seconds": 5,  # Custom timeout in seconds overrides Rate if abort_trying = False, else returns 429
+    # },
+    # "analytics_service": {
+    #     "domain_keyword": "anotherdomain.com",
+    #     "rates": [Rate(50, Duration.MINUTE)],
+    #     # No timeout here: default = -1
+    # },
+    "default": {"rates": [Rate(59, Duration.MINUTE)], "max_wait_seconds": -1, "abort_trying": False},
+}
+```
 
-### **init**
+## Configuration:
+domain_keyword: str -> Creates a limiter for this domain
+rates: list -> `Rate` objects for the domain
+max_wait_seconds: int -> Max seconds the limiter can wait for the domain
+abort_trying: bool -> 
+    False -> If "rates" demands more time than "max_wait_seconds", the request is fired asap
+    True -> If "rates" demands more time than "max_wait_seconds", a mocked 429 Response is returned with a custom object.
 
-- `caller_name: str  (limiter id)` (**Required**)
-- `per_second: int = 1`
-- `per_minute: int = 56`
-- `per_day: Optional[int] = None`
-- `stream: bool = False`
-- `timeout: Union[float, tuple] = 5`
-- `allow_redirects: bool = True`
-
-### send
-
-- `method: str` (**Required**)
-- `url: str` (**Required**)
-- `session: requests.Session = None`
-- `headers: Optional[dict] = None` (default headers are sent if None)
-- `**kwargs` (accepted by `requests.Request`)
-
-## Examples
-
-- Simplest (by default: 56 requests per minute, 1 request per second):
+## Example
 
   ```python
+  from api.rate_limiter import send_request
   import requests
-
-  from api import Communicate
-  from requests import Session
-
-  limiter = Communicate(caller_name="simple_john")
-
-  response: requests.Response = limiter.send(
-      method="GET", url="https://john-site.com"
-  )
-  ```
-
-- With custom limits, session and custom headers:
-
-  ```python
-  from api import Communicate
-  from requests import Session
-
-  limiter = Communicate(
-          caller_name="John",
-          per_second=1,
-          per_minute=6
-      )
-  headers = {"User-Agent": ("My Dear Agent v.1")}
-
-  with Session() as session:
-      response: requests.Response = limiter.send(
-          method="GET",
-          url="https://mysite.com",
-          session=session,
-          headers=headers
-      )
-  ```
+  
+  try:
+      # 1. Send request
+      response = send_request("https://example.com", method="POST", json={"amount": 10})
+      
+      # 2. Raise for error
+      # If:
+      #   - max_wait_seconds != -1 (-1 is the default) 
+      #   - abort_trying is True 
+      #   - the bucket cannot afford it
+      # -> a mocked 429 response is returned
+      # If the request errored -> HTTPError.
+      response.raise_for_status()
+      
+      # 3. Continue if everything is OK
+      data = response.json()
+      print("Success:", data)
+  
+  except requests.exceptions.HTTPError as e:
+      print(f"HTTP Error occurred: {e}")
+      if e.response and e.response.status_code == 429:
+          print("Reason: The application queue was too full and exceeded max_wait_seconds!")
+          
+  except Exception as e:
+      print(f"An unexpected error occurred: {e}")
+    ```
