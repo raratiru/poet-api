@@ -9,12 +9,10 @@ MOCK_FULL_CONFIG = {
         "domain_keyword": "teststripe.com",
         "rates": [Rate(10, Duration.MINUTE)],
         "max_wait_seconds": 2,
-        "abort_trying": True,
     },
     "test_analytics": {
         "domain_keyword": "testmixpanel.com",
         "rates": [Rate(5, Duration.MINUTE)],
-        "abort_trying": True,
     },
     "default": {"rates": [Rate(1, Duration.SECOND)]},
 }

@@ -4,7 +4,6 @@ from pyrate_limiter import Duration, Rate
 CORE_DEFAULT_CONFIG = {
     "rates": [Rate(59, Duration.MINUTE)],
     "max_wait_seconds": -1,
-    "abort_trying": False,
 }
 
 # The global settings dictionary utilized by the infrastructure

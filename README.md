@@ -20,7 +20,7 @@ DJANGO_RATE_LIMIT_SITES = {
         # No timeout here: default = -1
     },
     # The following line, already exists as default setting:
-    # "default": {"rates": [Rate(59, Duration.MINUTE)], "max_wait_seconds": -1, "abort_trying": False},
+    # "default": {"rates": [Rate(59, Duration.MINUTE)], "max_wait_seconds": -1},
 }
 ```
 

@@ -17,7 +17,7 @@ from api.config import RATE_LIMIT_SITES
 
 logger = logging.getLogger(__name__)
 
-DATA_DIR = os.path.join(tempfile.gettempdir(), "myapp_rate_limit_data")
+DATA_DIR = os.path.join(tempfile.gettempdir(), "poet_api_rate_limit_data")
 os.makedirs(DATA_DIR, exist_ok=True)
 DB_PATH = os.path.join(DATA_DIR, "global_limits.sqlite")
 
@@ -82,12 +82,11 @@ def send_request(url: str, method: str = "POST", **kwargs):
 
     # Read the custom wait time configuration, falling back to infinate (-1)
     max_wait = site_config.get("max_wait_seconds", -1)
-    abort_trying = site_config.get("abort_trying", False)
 
     # Executing try_acquire: blocks to wait if within limits, returns False if wait is too long
     is_acquired = global_limiter.try_acquire(config_key, timeout=max_wait)
 
-    if not is_acquired and abort_trying is True:
+    if not is_acquired:
         # Fail Fast: The queue wait time exceeds your program's willingness to wait
         logger.error(
             f"Queue wait time for {config_key} exceeds max_wait_seconds of {max_wait}s! Aborting."
