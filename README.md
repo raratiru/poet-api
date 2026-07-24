@@ -11,7 +11,7 @@ DJANGO_RATE_LIMIT_SITES = {
     "payment_gateway": {
         "domain_keyword": "adomain.com",
         "rates": [Rate(25, Duration.MINUTE)],
-        "max_wait_seconds": 5,  # Custom timeout in seconds, returns mocked HTTP 429 ("Too Many Requests") without performing a request, if the bucket needs more time.
+        "max_wait_seconds": 5,  # Custom timeout in seconds
     },
     "analytics_service": {
         "domain_keyword": "anotherdomain.com",
