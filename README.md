@@ -31,7 +31,7 @@ DJANGO_RATE_LIMIT_SITES = {
     * `max_wait_seconds: int` -> Max seconds the limiter can wait before failing.
         *  *-1*: Wait until the bucket allows a request, the request **never fails**.
         *  *positive int*: If the bucket needs more than `positive int` seconds to allow a request, the request **fails**.
-            * A mocked HTTP 429 ("Too Many Requests") response object is returned **without making** an actual request.
+            * A mocked `HTTP 429 ("Too Many Requests")` response object is returned **without making** an actual request.
             * `requests().raise_for_status()` raises `requests.exceptions.HTTPError`.
 
 ## Example
@@ -49,7 +49,7 @@ DJANGO_RATE_LIMIT_SITES = {
       # If:
       #   - max_wait_seconds != -1 (-1 is the default) 
       #   - the bucket cannot afford it
-      # -> a mocked 429 response is returned
+      # -> a mocked HTTP 429 ("Too Many Requests") response is returned
 
       response.raise_for_status()
       
