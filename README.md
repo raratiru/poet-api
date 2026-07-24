@@ -6,6 +6,7 @@ Uses `pyrate_limiter.SQLiteBucket` with `use_file_lock=True`.
 
 It has a default `RATE_LIMIT_SITES` setting and waits for `settings.DJANGO_RATE_LIMIT_SITES`:
 
+## Configuration:
 ```python
 DJANGO_RATE_LIMIT_SITES = {
     "payment_gateway": {
@@ -23,9 +24,8 @@ DJANGO_RATE_LIMIT_SITES = {
 }
 ```
 
-## Configuration:
-* key -> Unique identity keyword
-* value ->
+* `DJANGO_RATE_LIMIT_SITES.keys()[0]: str` -> Unique identity keyword
+* `DJANGO_RATE_LIMIT_SITES.values()[0]: dict` ->
     * `domain_keyword: str` -> `urlparse(url).netlock or "default"`. A new autonomous limiter is based on this keyword.
     * `rates: list` -> List of `Rate` objects for the `domain_keyword`
     * `max_wait_seconds: int` -> Max seconds the limiter can wait befaure failing.
