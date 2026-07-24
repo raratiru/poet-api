@@ -28,7 +28,7 @@ DJANGO_RATE_LIMIT_SITES = {
 * `DJANGO_RATE_LIMIT_SITES.values()[0]: dict` ->
     * `domain_keyword: str` -> `urlparse(url).netlock or "default"`. A new autonomous limiter is based on this keyword.
     * `rates: list` -> List of `Rate` objects for the `domain_keyword`
-    * `max_wait_seconds: int` -> Max seconds the limiter can wait befaure failing.
+    * `max_wait_seconds: int` -> Max seconds the limiter can wait before failing.
         *  *-1*: Wait until the bucket allows a request, the request **never fails**.
         *  *positive int*: If the bucket needs more than `positive int` seconds to allow a request, the request **fails**.
             * A mocked HTTP 429 ("Too Many Requests") response object is returned **without making** an actual request.
