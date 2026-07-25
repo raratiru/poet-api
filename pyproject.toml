@@ -14,16 +14,16 @@ filelock = "^3"
 
 
 [tool.poetry.group.dev.dependencies]
-mypy = "^1.5"
-bandit = "^1.7.4"
-flake8 = "^7.2.0"
-pytest = "^8.2.2"
-pytest-mock = "^3.10.0"
+mypy = "*"
+bandit = "*"
+flake8 = "*"
+pytest = "*"
+pytest-mock = "*"
 pytest-cov = "*"
 pytest-factoryboy = "*"
 ipykernel = "*"
-pytest-xdist = "^3.3.1"
-django-devapp = "^0"
+pytest-xdist = "*"
+django-devapp = "*"
 
 [build-system]
 requires = ["poetry-core"]
