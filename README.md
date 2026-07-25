@@ -36,6 +36,8 @@ DJANGO_RATE_LIMIT_SITES = {
 
 ## Example
 
+### Bare metal use
+
   ```python
   import requests
 
@@ -65,3 +67,24 @@ DJANGO_RATE_LIMIT_SITES = {
   except Exception as e:
       print(f"An unexpected error occurred: {e}")
     ```
+
+### `api.api_call.call_them`
+This method provides a mechanism to retry up to 10 times with backoff strategy. 
+
+```python
+from api import api_call
+
+try:
+    response: ApiResponse = api_call.call_them(
+            url="https://www.example.com",
+            action="GET",
+            **kwargs,
+        )
+    return response
+
+except api_call.RETRIABLE_ERRORS as e:
+    print(f"HTTP Error occurred: {e}")
+
+except Exception as e:
+    print(f"An unexpected error occurred: {e}")
+```

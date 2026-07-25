@@ -4,6 +4,7 @@ import tempfile
 from urllib.parse import urlparse
 
 import requests
+from protocols import ApiResponse
 from pyrate_limiter import (
     AbstractBucket,
     BucketFactory,
@@ -72,7 +73,7 @@ factory = IsolatedDomainBucketFactory()
 global_limiter = Limiter(factory)
 
 
-def send_request(url: str, method: str = "POST", **kwargs):
+def send_request(url: str, method: str = "POST", **kwargs) -> ApiResponse:
     """
     Sync Hook for v4. Dynamically throttles requests based on application max wait time.
     Returns a custom 429 Mock Response if the calculated queue wait time exceeds constraints.
@@ -95,6 +96,9 @@ def send_request(url: str, method: str = "POST", **kwargs):
         class QueueTimeoutResponse:
             status_code = 429
             text = "Application queue wait timeout exceeded."
+
+            def json(self):
+                return "Application queue wait timeout exceeded."
 
             def raise_for_status(self):
                 raise requests.exceptions.HTTPError("429 Client Error: Queue Timeout")

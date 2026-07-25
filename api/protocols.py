@@ -1,0 +1,13 @@
+from typing import Any, Protocol
+
+
+class ApiResponse(Protocol):
+    @property
+    def status_code(self) -> int: ...
+
+    @property
+    def text(self) -> str: ...
+
+    def json(self) -> Any: ...
+
+    def raise_for_status(self) -> None: ...
