@@ -4,7 +4,6 @@ import tempfile
 from urllib.parse import urlparse
 
 import requests
-from protocols import ApiResponse
 from pyrate_limiter import (
     AbstractBucket,
     BucketFactory,
@@ -15,6 +14,7 @@ from pyrate_limiter import (
 )
 
 from api.config import RATE_LIMIT_SITES
+from api.protocols import ApiResponse
 
 logger = logging.getLogger(__name__)
 
