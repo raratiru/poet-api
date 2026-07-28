@@ -38,6 +38,6 @@ def call_them(url: str, action: str, **kwargs) -> ApiResponse:
 
             wait_time = 2 * (2 ** (retry_counter - 1))
             error_name = type(connection_error).__name__
-            logger.info(f"{error_name}: Waiting {wait_time} seconds to retry")
+            logger.info(f"{error_name}: Waiting {wait_time} seconds to retry \n\n {connection_error}")
 
             sleep(wait_time)
