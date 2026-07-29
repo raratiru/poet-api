@@ -75,15 +75,13 @@ This method provides a mechanism to retry up to 10 times with backoff strategy.
 from api import api_call
 from api.protocols import SyncHttpResponse
 
-try:
-    response: SyncHttpResponse = api_call.call_them(
-        url="https://www.example.com",
-        action="GET",
-        **kwargs,
-    )
-    return response
 
-except api_call.RETRIABLE_ERRORS as e:
+response: SyncHttpResponse = api_call.call_them(
+    url="https://www.example.com",
+    action="GET",
+    **kwargs,
+)
+    
     print(f"HTTP Error occurred: {e}")
 
 except Exception as e:
