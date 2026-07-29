@@ -42,28 +42,28 @@ DJANGO_RATE_LIMIT_SITES = {
   import requests
 
   from api.rate_limiter import send_request
-  
+
   try:
       # 1. Send request
       response = send_request("https://example.com", method="POST", json={"amount": 10})
-      
+
       # 2. Raise for error
       # If:
-      #   - max_wait_seconds != -1 (-1 is the default) 
+      #   - max_wait_seconds != -1 (-1 is the default)
       #   - the bucket cannot afford it
       # -> a mocked HTTP 429 ("Too Many Requests") response is returned
 
       response.raise_for_status()
-      
+
       # 3. Continue if everything is OK
       data = response.json()
       print("Success:", data)
-  
+
   except requests.exceptions.HTTPError as e:
       print(f"HTTP Error occurred: {e}")
       if e.response and e.response.status_code == 429:
           print("Reason: The application queue was too full and exceeded max_wait_seconds!")
-          
+
   except Exception as e:
       print(f"An unexpected error occurred: {e}")
     ```
@@ -73,13 +73,14 @@ This method provides a mechanism to retry up to 10 times with backoff strategy.
 
 ```python
 from api import api_call
+from api.protocols import SyncHttpResponse
 
 try:
-    response: ApiResponse = api_call.call_them(
-            url="https://www.example.com",
-            action="GET",
-            **kwargs,
-        )
+    response: SyncHttpResponse = api_call.call_them(
+        url="https://www.example.com",
+        action="GET",
+        **kwargs,
+    )
     return response
 
 except api_call.RETRIABLE_ERRORS as e:

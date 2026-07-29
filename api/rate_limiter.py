@@ -1,6 +1,7 @@
 import logging
 import os
 import tempfile
+from collections.abc import Mapping
 from urllib.parse import urlparse
 
 import requests
@@ -14,7 +15,7 @@ from pyrate_limiter import (
 )
 
 from api.config import RATE_LIMIT_SITES
-from api.protocols import ApiResponse
+from api.protocols import SyncHttpResponse
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +74,7 @@ factory = IsolatedDomainBucketFactory()
 global_limiter = Limiter(factory)
 
 
-def send_request(url: str, method: str = "POST", **kwargs) -> ApiResponse:
+def send_request(url: str, method: str = "POST", **kwargs) -> SyncHttpResponse:
     """
     Sync Hook for v4. Dynamically throttles requests based on application max wait time.
     Returns a custom 429 Mock Response if the calculated queue wait time exceeds constraints.
@@ -102,6 +103,10 @@ def send_request(url: str, method: str = "POST", **kwargs) -> ApiResponse:
 
             def raise_for_status(self):
                 raise requests.exceptions.HTTPError("429 Client Error: Queue Timeout")
+
+            @property
+            def headers(self) -> Mapping[str, str]:
+                return {}
 
         return QueueTimeoutResponse()
 
