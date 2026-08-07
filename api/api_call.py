@@ -33,7 +33,9 @@ class Response:
         return "No response available because no response received"
 
     def raise_for_status(self):
-        raise requests.exceptions.HTTPError("400 Client Error: No response available because no response received")
+        raise requests.exceptions.HTTPError(
+            "400 Client Error: No response available because no response received"
+        )
 
 
 def call_them(url: str, action: str, **kwargs) -> SyncHttpResponse:
@@ -47,13 +49,18 @@ def call_them(url: str, action: str, **kwargs) -> SyncHttpResponse:
             return response
 
         except RETRIABLE_ERRORS as connection_error:
+            try:
+                the_text = response.json()
+            except requests.exceptions.JSONDecodeError:
+                the_text = response.text
+
             retry_counter += 1
             if retry_counter > 10:
                 logger.warning(
                     "Max retries exceeded for %s %s with message \n\n %s",
                     action.upper(),
                     url,
-                    response.json(),
+                    the_text,
                     extra={"tags": {"api_url": url, "api_action": action.upper()}},
                 )
                 return response
@@ -66,11 +73,16 @@ def call_them(url: str, action: str, **kwargs) -> SyncHttpResponse:
 
             sleep(wait_time)
         except requests.HTTPError:
+            try:
+                the_text = response.json()
+            except requests.exceptions.JSONDecodeError:
+                the_text = response.text
+
             logger.warning(
                 "HTTPError occured for %s %s with message \n\n %s",
                 action.upper(),
                 url,
-                response.json(),
+                the_text,
                 extra={"tags": {"api_url": url, "api_action": action.upper()}},
             )
             return response
