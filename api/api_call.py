@@ -54,6 +54,9 @@ def call_them(url: str, action: str, **kwargs) -> SyncHttpResponse:
             except requests.exceptions.JSONDecodeError:
                 the_text = response.text
 
+            if not the_text:
+                the_text = "No message received from the server"
+
             retry_counter += 1
             if retry_counter > 10:
                 logger.warning(
@@ -68,7 +71,7 @@ def call_them(url: str, action: str, **kwargs) -> SyncHttpResponse:
             wait_time = 2 * (2 ** (retry_counter - 1))
             error_name = type(connection_error).__name__
             logger.warning(
-                f"{error_name}: Waiting {wait_time} seconds to retry \n\n {connection_error} \n\n {response.json()}"
+                f"{error_name}: Waiting {wait_time} seconds to retry \n\n {connection_error} \n\n {the_text}"
             )
 
             sleep(wait_time)
@@ -78,11 +81,23 @@ def call_them(url: str, action: str, **kwargs) -> SyncHttpResponse:
             except requests.exceptions.JSONDecodeError:
                 the_text = response.text
 
+            if not the_text:
+                the_text = "No message received from the server"
+
+            retry_counter += 1
+            if retry_counter > 10:
+                logger.warning(
+                    "HTTPError occured for %s %s with message \n\n %s",
+                    action.upper(),
+                    url,
+                    the_text,
+                    extra={"tags": {"api_url": url, "api_action": action.upper()}},
+                )
+                return response
+
+            wait_time = 2 * (2 ** (retry_counter - 1))
             logger.warning(
-                "HTTPError occured for %s %s with message \n\n %s",
-                action.upper(),
-                url,
-                the_text,
-                extra={"tags": {"api_url": url, "api_action": action.upper()}},
+                f"HTTPError: Waiting {wait_time} seconds to retry \n\n {the_text}"
             )
-            return response
+
+            sleep(wait_time)
