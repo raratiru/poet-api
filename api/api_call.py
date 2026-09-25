@@ -58,7 +58,7 @@ def call_them(url: str, action: str, **kwargs) -> SyncHttpResponse:
                 the_text = "No message received from the server"
 
             retry_counter += 1
-            if retry_counter > 10:
+            if retry_counter > 3:
                 logger.warning(
                     "Max retries exceeded for %s %s with message \n\n %s",
                     action.upper(),
@@ -85,7 +85,7 @@ def call_them(url: str, action: str, **kwargs) -> SyncHttpResponse:
                 the_text = "No message received from the server"
 
             retry_counter += 1
-            if retry_counter > 10:
+            if retry_counter > 3:
                 logger.warning(
                     "HTTPError occured for %s %s with message \n\n %s",
                     action.upper(),
