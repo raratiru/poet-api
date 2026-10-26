@@ -10,7 +10,7 @@ packages = [{include = "api"}]
 [tool.poetry.dependencies]
 python = "^3.11"
 pyrate-limiter = "^4"
-filelock = "^3"
+filelock = ">=3,<5"
 
 
 [tool.poetry.group.dev.dependencies]
